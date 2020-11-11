@@ -6,7 +6,8 @@
             ref="scroll"
             :probe-type="3" 
             @scroll="contentScroll" 
-            :pull-up-load="true">
+            :pull-up-load="true" 
+            @pullingUp="loadmore">
       <home-swiper :banners="banners"/>
       <recommend-view :recommends="recommends"/>
       <feature-view/>
@@ -79,12 +80,23 @@
     },
     mounted() {
       // 3.监听item中图片加载完成
+      const refresh = this.debounce(this.$refs.scroll.refresh, 200)
       this.$bus.$on('itemImageLoad', () => {
-        this.$refs.scroll.refresh()
+        refresh()
       })
     },
     methods: {
       /* 事件监听相关方法 */
+      // 防抖操作
+      debounce(func, delay) {
+        let timer = null
+        return function (...args) {
+          if (timer) clearTimeout(timer)
+          timer = setTimeout(() => {
+            func.apply(this, args)
+          }, delay)
+        }
+      },
       tabClick(index) {
         switch (index) {
           case 0:
@@ -105,6 +117,9 @@
         // console.log(position)  
         this.isShowBackTop = -position.y > 1000  //position值为负,要比较则先添加负号
       },
+      loadmore() {
+        this.getHomeGoods(this.currentType)
+      },
 
       /* 网络请求相关方法 */
       getHomeMultidata() {
@@ -118,6 +133,9 @@
         getHomeGoods(type, page).then(res => {
           this.goods[type].list.push(...res.data.list)
           this.goods[type].page += 1
+
+          // 完成上拉加载更多
+          this.$refs.scroll.finishPullUp()
         })
       }
     }

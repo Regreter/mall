@@ -15,6 +15,10 @@
       probeType: {
         type: Number,
         default: 0
+      },
+      pullUpLoad: {
+        type: Boolean,
+        default: false
       }
     },
     data () {
@@ -35,16 +39,23 @@
         // console.log(position)
         this.$emit('scroll', position)
       })
+
+      // 3.监听scroll滚动到底部
+      if (this.pullUpLoad) {
+        this.scroll.on('pullingUp', () => {
+          this.$emit('pullingUp')
+        })
+      }
     },
     methods: {
       scrollTo(x, y, time=500) {
         this.scroll && this.scroll.scrollTo(x, y, time)
       },
-      finishPullUp() {
-        this.scroll.finishPullUp()
-      },
       refresh() {
         this.scroll && this.scroll.refresh()
+      },
+      finishPullUp() {
+        this.scroll && this.scroll.finishPullUp()
       }
     }
   }
